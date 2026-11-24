@@ -63,6 +63,7 @@ class Course(db.Model):
     teacher_id = db.Column(db.Integer,db.ForeignKey("user.id"),nullable = False)
     teacher = db.relationship("User",backref="courses")
 
+    
     def to_dict(self):
         return {
             "id":self.id,
@@ -90,3 +91,42 @@ class Knowledge(db.Model):
             "course_id":self.course_id
 
         }
+
+
+
+#知识图谱
+#todo 1:知识图谱的边，描述知识点之间的关系
+class KnowledgeRelation(db.Model):
+    __tablename__ = "knowledge_relation"
+    id = db.Column(db.Integer,primary_key = True,autuincrement = True)
+
+    #源知识点
+    source_id = db.Column(db.Integer,db.ForeignKey("knowledge.id"),nullable = False)
+
+    #目标知识点
+    target_id = db.Column(db.Integer,db.ForeignKey("knowledge.id",nullable = False))
+
+    #节点关系：pre（前置依赖），contain（包含），relate（相关）
+    rel_type = db.Column(db.String(30),nullable = False)
+
+    #备注
+    remark = db.Column(db.String(255))
+
+    #两个关系，分别绑定源知识点、目标知识点
+    source = db.relationship("Knowledge",foreign_keys=[source_id],backref="out_relations")
+    target = db.relationship("Knowledge",foreign_keys=[target_id],backref="in_relations")
+
+    # Knowledge模型里
+    out_relation = db.relationship("KnowledgeRelation", foreign_keys="KnowledgeRelation.source_id", backref="source")
+    in_relation = db.relationship("KnowledgeRelation", foreign_keys="KnowledgeRelation.target_id", backref="target")
+
+    def to_dict(self):
+        return {
+            "id":self.id,
+            "source_id":self.target_id,
+            "target_id":self.rel_type,
+            "remark":self.remark
+        }
+
+
+
